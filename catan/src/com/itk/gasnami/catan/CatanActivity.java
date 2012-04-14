@@ -20,11 +20,13 @@ import android.widget.Toast;
 
 public class CatanActivity extends Activity {
 	
+	//Variables for debuging
 	HashMap<Integer, Pair<Landing, Landing> > landingTiles = 
 			new HashMap<Integer, Pair<Landing,Landing>>();
 	int nOfPlayers = 2; //bővítés esetén erre kell alternatíva
 	Button debugBtn;
 	
+	//Show debug datas as Toast messages
 	class myClickListener implements OnClickListener {
 		@Override
 		public void onClick(View v) {
@@ -59,12 +61,15 @@ public class CatanActivity extends Activity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 //        setContentView(R.layout.main);
+        //TODO: A custom panel View elé csapni az infoBar-okat FrameLayout-al
         setContentView(new Panel(this));
 //        InitializeTiles();
 //        debugBtn = (Button) findViewById(R.id.debugBtn);
 //        debugBtn.setOnClickListener(new myClickListener());
 //        
     }
+    
+//    XXX This code was transfered to Panel Class
     
 //    //TODO: change the size of the bitmaps and the coordinates!
 //    public void InitializeTiles() {
