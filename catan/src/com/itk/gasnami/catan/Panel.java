@@ -26,20 +26,14 @@ import android.view.WindowManager;
 
 public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	//Drawing parameters
-//	private static int scaleFactor = 4; //TODO: should depend on the screensize!
-//	int cNewWidth = (int)338/scaleFactor;
-//	int cNewHeight = (int)390/scaleFactor;
-//	int cVPadding = (int)292/scaleFactor;
 	int stepper = 0;
 	
 	Display display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 	int displayWidth = display.getWidth();
-	int displayHeight = display.getHeight();
-//	int horizontalPadding = (displayWidth - 5 * cNewWidth) / 2;
-//	int verticalPadding = (displayHeight - 4 * cVPadding - cNewHeight - cNewHeight / 2) / 2;
-	
+	int displayHeight = display.getHeight();	
     SizeHandler sizeHandler = new SizeHandler(displayWidth, displayHeight);
 	
+    //Drag & pinch zoom parameters
 	private static final int INVALID_POINTER_ID = -1;
     private float mPosX;
     private float mPosY;
@@ -51,6 +45,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     private ScaleGestureDetector mScaleDetector;
     private float mScaleFactor = 1.f;
 	
+    //Handle bitmaps
 	private HashMap<Integer, Bitmap> bitmapCache = new HashMap<Integer, Bitmap>();
 	
 	//Game parameters
@@ -60,8 +55,6 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 			new HashMap<Integer, Pair<Landing,Landing>>();
 	
 	private int nOfPlayers = 2; //bővítés esetén erre kell alternatíva
-	
-	//private Graphic _currentGraphic = null;
 
 	public Panel(Context context) {
 		super(context);
@@ -77,6 +70,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	
 	//TODO: a landingTiles-t érdemes ide tenni?
 	private void fillBitmapCache() {
+		bitmapCache.put(0,  BitmapFactory.decodeResource(getResources(), R.drawable.none));
         bitmapCache.put(7,  BitmapFactory.decodeResource(getResources(), R.drawable.bandit3));
         bitmapCache.put(2,  BitmapFactory.decodeResource(getResources(), R.drawable.c02));
         bitmapCache.put(3,  BitmapFactory.decodeResource(getResources(), R.drawable.c03));
@@ -95,21 +89,10 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     }
 	
     public void InitializeTiles() {
-    	//private void fillBitmapCache() ??
     	ArrayList<Integer> resourceNumbers = new ArrayList<Integer>();
 		resourceNumbers.addAll(Arrays.asList( 2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12 ));
 		
 		ArrayList<Pair<Integer, Integer>> coordinates = new ArrayList<Pair<Integer,Integer>>();
-//		for(int j = 0; j < 5; j++) {
-//			int iMax = 5;
-//			int temp = (j < 3) ? (j + 1 - 3) : ( 3 - j - 1);
-//			iMax += temp;
-//			double hPadding = (-1.0) * temp / 2.0;
-//			  
-//			for(int i = 0; i < iMax; i++) {
-//				coordinates.add(new Pair<Integer, Integer>((int)((i + hPadding) * cNewWidth) + horizontalPadding, j * cVPadding + verticalPadding));  
-//			}
-//		}
 		
 		for(int j = 0; j < 5; j++) {
 			int iMax = 5;
@@ -131,7 +114,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     	HashMap<Player, Integer> productionTest = CreateProductionHash();
     	
     	landingTiles.put(7, new Pair<Landing, Landing>(
-    			new Landing(7, BitmapFactory.decodeResource(getResources(), 
+    			new Landing(0, BitmapFactory.decodeResource(getResources(), 
     					R.drawable.desert), productionTest, Resource.none, 
     					coordinates.get(0), false), 
     			null));
@@ -276,24 +259,13 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	protected void onDraw(Canvas canvas) {
 		// draw background
 		canvas.drawColor(Color.DKGRAY);
-//		(newWidth - horizontalPadding % newWidth) <- eltolás balra, a határokat ennyivel kijjebb kell tenni!
 		
-        super.onDraw(canvas);
-
+//        super.onDraw(canvas);
         canvas.save();
         canvas.translate(mPosX, mPosY);
         sizeHandler.reScale(mScaleFactor);
-        
-//        int newWidth = (int)(cNewWidth * mScaleFactor);
-//        int newHeight = (int)(cNewHeight * mScaleFactor);
-//    	int vPadding = (int)(cVPadding * mScaleFactor);
-//    	
-//    	horizontalPadding = (displayWidth - 5 * newWidth) / 2;
-//    	verticalPadding = (displayHeight - 4 * vPadding - newHeight - newHeight / 2) / 2;
-
-        
-//        canvas.scale(mScaleFactor, mScaleFactor);
 		
+//        XXX: water beckground + animation test...
 ////		Random mRnd = new Random();
 //		for(int j = 0; j < displayHeight / vPadding + 1; j++) {
 //			for(int i = 0; i < displayWidth / newWidth + 2; i++)
@@ -308,45 +280,35 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 //		stepper = (stepper + 1) % 4;
 		
 		// draw tiles
-		Bitmap bitmap;
-		Pair<Integer, Integer> coordinates;
-		
 		Collection<Pair<Landing, Landing>> c = landingTiles.values();
 		Iterator<Pair<Landing, Landing>> itr = c.iterator();
 		
 		while(itr.hasNext()) {
 			Pair<Landing, Landing> actualLanding = itr.next();
-			bitmap = Bitmap.createScaledBitmap(actualLanding.first.getBitmap4Land(),sizeHandler.landingWidth,sizeHandler.landingHeight,true);
-			coordinates = sizeHandler.getLandingCoordinates(actualLanding.first.getCoordinates()); 
-			canvas.drawBitmap(bitmap, coordinates.first, coordinates.second, null);
-			
-			//Resource or Bandit chips
-			//TODO: this should be refactored
-			int xCoord = (int) (coordinates.first + sizeHandler.landingWidth / 2 - sizeHandler.chipsSize / 2);
-			int yCoord = (int) (coordinates.second + sizeHandler.landingHeight / 2 - sizeHandler.chipsSize / 2);
-			bitmap = Bitmap.createScaledBitmap(
-					bitmapCache.get(actualLanding.first.getResourceNumber()),
-					sizeHandler.chipsSize,sizeHandler.chipsSize,true);
-			coordinates = actualLanding.first.getCoordinates();
-			canvas.drawBitmap(bitmap, xCoord, yCoord, null);
+			drawLanding(actualLanding.first, canvas);
 			
 			if(actualLanding.second != null){
-				bitmap = Bitmap.createScaledBitmap(actualLanding.second.getBitmap4Land(),sizeHandler.landingWidth,sizeHandler.landingHeight,true);
-				coordinates = sizeHandler.getLandingCoordinates(actualLanding.second.getCoordinates());
-				canvas.drawBitmap(bitmap, coordinates.first, coordinates.second, null);
-				
-//				Resource or Bandit chips
-				xCoord = (int) (coordinates.first + sizeHandler.landingWidth / 2 - sizeHandler.chipsSize / 2);
-				yCoord = (int) (coordinates.second + sizeHandler.landingHeight / 2 - sizeHandler.chipsSize / 2);
-				bitmap = Bitmap.createScaledBitmap(
-						bitmapCache.get(actualLanding.first.getResourceNumber()),
-						sizeHandler.chipsSize,sizeHandler.chipsSize,true);
-				coordinates = actualLanding.first.getCoordinates();
-				canvas.drawBitmap(bitmap, xCoord, yCoord, null);
+				drawLanding(actualLanding.second, canvas);
 			}
 		}
 		
         canvas.restore();
+	}
+	
+	private void drawLanding(Landing actualLanding, Canvas canvas) {
+		Bitmap bitmap = Bitmap.createScaledBitmap(actualLanding.getBitmap4Land(),
+				sizeHandler.getLandingWidth(),sizeHandler.getLandingHeight(),true);
+		Pair<Integer, Integer> coordinates = sizeHandler.getLandingCoordinates(actualLanding.getCoordinates()); 
+		canvas.drawBitmap(bitmap, coordinates.first, coordinates.second, null);
+		
+		//Resource or Bandit chips
+		int xCoord = (int) (coordinates.first + sizeHandler.getLandingWidth() / 2 - sizeHandler.getChipsSize() / 2);
+		int yCoord = (int) (coordinates.second + sizeHandler.getLandingHeight() / 2 - sizeHandler.getChipsSize() / 2);
+		bitmap = Bitmap.createScaledBitmap(
+			    bitmapCache.get(actualLanding.getIsActive() ? actualLanding.getResourceNumber() : 7),
+				sizeHandler.getChipsSize(),sizeHandler.getChipsSize(),true);
+		coordinates = actualLanding.getCoordinates();
+		canvas.drawBitmap(bitmap, xCoord, yCoord, null);
 	}
 	
 	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
@@ -355,7 +317,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	        mScaleFactor *= detector.getScaleFactor();
 	        
 	        // Don't let the object get too small or too large.
-	        mScaleFactor = Math.max(1.f, Math.min(mScaleFactor, 1.f * sizeHandler.screenFactor));
+	        mScaleFactor = Math.max(1.f, Math.min(mScaleFactor, 1.f * sizeHandler.getScreenFactor()));
 
 	        invalidate();
 	        return true;
