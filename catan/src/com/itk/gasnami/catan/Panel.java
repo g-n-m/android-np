@@ -54,7 +54,9 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	private HashMap<Integer, Pair<Landing, Landing> > landingTiles = 
 			new HashMap<Integer, Pair<Landing,Landing>>();
 	
-	private int nOfPlayers = 2; //bővítés esetén erre kell alternatíva
+	//NOTE: bővítés esetén erre kell alternatíva
+	//TODO: Valószínűleg paraméterben kéne érkezzen
+	private int nOfPlayers = 2; 
 
 	public Panel(Context context) {
 		super(context);
@@ -95,12 +97,10 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 		ArrayList<Pair<Integer, Integer>> coordinates = new ArrayList<Pair<Integer,Integer>>();
 		
 		for(int j = 0; j < 5; j++) {
-			int iMax = 5;
-			int temp = (j < 3) ? (j + 1 - 3) : ( 3 - j - 1);
-			iMax += temp;
+			int iMax = j % 4 == 2 ? 5 : 4;
 			  
-			for(int i = 0; i < iMax; i++) {
-				coordinates.add(new Pair<Integer, Integer>(i, j));  
+			for(int i = j % 4 == 0 ? 1 : 0 ; i < iMax; i++) {
+				coordinates.add(new Pair<Integer, Integer>(i, j));
 			}
 		}
     	    	
@@ -227,7 +227,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
-		// TODO Auto-generated method stub
+		// Auto-generated method stub
 		
 	}
 

@@ -43,13 +43,12 @@ public class SizeHandler {
 		int i = positions.first;
 		int j = positions.second;
 		
-		int temp = (j < 3) ? (3 - j - 1) : (j + 1 - 3);
-		double hPadding = temp / 2.0;
+		double hPadding =  (j % 2) / 2.0;
 		return new Pair<Integer, Integer>((int)((i + hPadding) * landingWidth) + positionPaddingHorizontal,
 				j * landingVPadding + posiotionPaddingVertical);
 	}
 	
-	// implement rescaling functionality
+	// implements rescaling functionality
 	public void reScale(float scaleFactor) {
 		calculateInitials();
 		
