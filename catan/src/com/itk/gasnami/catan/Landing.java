@@ -7,12 +7,19 @@ import android.util.Pair;
 
 public class Landing {
 
+	//TODO: ennek máshol kéne legyen a helye
 	public enum Player {
 		Player1, Player2, Player3, Player4
 	}
+	
+	//TODO: helyre kell tenni (own class)
+	public enum area {
+		disabled, enabled, settlement, city
+	}
 
+	//NOTE: any stands for Ports
 	public enum Resource {
-		brick, lumber, wool, grain, ore, none
+		brick, lumber, wool, grain, ore, none, any
 	}
 
 	private int resourceNumber = 0; // bitmap ehhez is?

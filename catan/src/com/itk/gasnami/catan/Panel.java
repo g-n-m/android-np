@@ -54,6 +54,10 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	private HashMap<Integer, Pair<Landing, Landing> > landingTiles = 
 			new HashMap<Integer, Pair<Landing,Landing>>();
 	
+	//TODO: ebből megfelelő elem kell...
+	private int[][] vertices = new int[11][6];
+	private int[][] edges = new int[6][11];
+	
 	//NOTE: bővítés esetén erre kell alternatíva
 	//TODO: Valószínűleg paraméterben kéne érkezzen
 	private int nOfPlayers = 2; 
