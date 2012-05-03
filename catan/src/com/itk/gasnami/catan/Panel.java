@@ -75,8 +75,8 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 		mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
 	}
 	
-	//TODO: a landingTiles-t érdemes ide tenni?
 	private void fillBitmapCache() {
+		//Chipses
 		bitmapCache.put(0,  BitmapFactory.decodeResource(getResources(), R.drawable.none));
         bitmapCache.put(7,  BitmapFactory.decodeResource(getResources(), R.drawable.bandit3));
         bitmapCache.put(2,  BitmapFactory.decodeResource(getResources(), R.drawable.c02));
@@ -89,6 +89,14 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
         bitmapCache.put(10, BitmapFactory.decodeResource(getResources(), R.drawable.c10));
         bitmapCache.put(11, BitmapFactory.decodeResource(getResources(), R.drawable.c11));
         bitmapCache.put(12, BitmapFactory.decodeResource(getResources(), R.drawable.c12));
+        //LandingTiles
+        bitmapCache.put(20, BitmapFactory.decodeResource(getResources(), R.drawable.hill));
+        bitmapCache.put(21, BitmapFactory.decodeResource(getResources(), R.drawable.forest));
+        bitmapCache.put(22, BitmapFactory.decodeResource(getResources(), R.drawable.pasture));
+        bitmapCache.put(23, BitmapFactory.decodeResource(getResources(), R.drawable.field));
+        bitmapCache.put(24, BitmapFactory.decodeResource(getResources(), R.drawable.mountain));
+        bitmapCache.put(25, BitmapFactory.decodeResource(getResources(), R.drawable.desert));
+        //Background
         bitmapCache.put(101,  BitmapFactory.decodeResource(getResources(), R.drawable.water1));
         bitmapCache.put(102,  BitmapFactory.decodeResource(getResources(), R.drawable.water2));
         bitmapCache.put(103,  BitmapFactory.decodeResource(getResources(), R.drawable.water3));
@@ -109,22 +117,20 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 			}
 		}
     	    	
-    	GenerateTilesByType(4, resourceNumbers, R.drawable.forest, Resource.lumber, coordinates);
-    	GenerateTilesByType(4, resourceNumbers, R.drawable.pasture, Resource.wool, coordinates);
-    	GenerateTilesByType(4, resourceNumbers, R.drawable.field, Resource.grain, coordinates);
-    	GenerateTilesByType(3, resourceNumbers, R.drawable.hill, Resource.brick, coordinates);
-    	GenerateTilesByType(3, resourceNumbers, R.drawable.mountain, Resource.ore, coordinates);
+    	GenerateTilesByType(4, resourceNumbers, Resource.lumber, coordinates);
+    	GenerateTilesByType(4, resourceNumbers, Resource.wool, coordinates);
+    	GenerateTilesByType(4, resourceNumbers, Resource.grain, coordinates);
+    	GenerateTilesByType(3, resourceNumbers, Resource.brick, coordinates);
+    	GenerateTilesByType(3, resourceNumbers, Resource.ore, coordinates);
     	
     	//Adding the desert tile
     	HashMap<Player, Integer> productionTest = CreateProductionHash();
     	
     	landingTiles.put(7, new Pair<Landing, Landing>(
-    			new Landing(0, BitmapFactory.decodeResource(getResources(), 
-    					R.drawable.desert), productionTest, Resource.none, 
-    					coordinates.get(0), false), 
-    			null));
+    			new Landing(0, productionTest, Resource.none, coordinates.get(0), false), null));
     }
     
+    //Initialize the vertices & edges
     public void InitializeBorders() {
     	for(int j = 0; j < 6; j++) {
     		for(int i = 0; i < 11; i++) {
@@ -132,11 +138,28 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     			edges[j][i] = new Border();
     		}
     	}
+    	
+    	//Handle the top left part of the matrix:
+    	vertices[ 0][ 0] = null;	edges[ 0][ 0] = null;
+    	vertices[ 0][ 1] = null;	edges[ 1][ 0] = null;
+    	vertices[ 1][ 0] = null;	edges[ 0][ 1] = null;
+    	//Handle the top right part of the matrix:    	
+    	vertices[ 9][ 0] = null;	edges[ 0][ 9] = null;
+    	vertices[10][ 0] = null;	edges[ 0][10] = null;
+    	vertices[10][ 1] = null;	edges[ 1][10] = null;
+    	//Handle the bottom left part of the matrix:
+    	vertices[ 0][ 4] = null;	edges[ 0][ 4] = null;
+    	vertices[ 0][ 5] = null;	edges[ 0][ 5] = null;
+    	vertices[ 1][ 5] = null;	edges[ 1][ 5] = null;
+    	//Handle the bottom right part of the matrix:
+    	vertices[10][ 4] = null;	edges[ 4][10] = null;
+    	vertices[10][ 5] = null;	edges[ 5][10] = null;
+    	vertices[ 9][ 5] = null;	edges[ 5][ 9] = null;
     }
     
     //Generating tiles of a given type
     public void GenerateTilesByType(int nOfTiles, ArrayList<Integer> resourceNumbers, 
-    		int drawable, Resource resource, ArrayList<Pair<Integer, Integer>> coordinates ) {
+    		Resource resource, ArrayList<Pair<Integer, Integer>> coordinates ) {
     	Random mRnd = new Random();
     	
     	for (int i = 0; i < nOfTiles; i++) {
@@ -148,9 +171,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     		randomed = mRnd.nextInt(coordinates.size());
     		Pair<Integer, Integer> coordinate = coordinates.remove(randomed);
     		
-    		Landing tempLandingTile = 
-    				new Landing(resourceNumber, BitmapFactory.decodeResource(getResources(), drawable), 
-    						productionTemp, resource, coordinate, true);
+    		Landing tempLandingTile = new Landing(resourceNumber, productionTemp, resource, coordinate, true);
 
     		if(!landingTiles.containsKey(resourceNumber)) {
     			landingTiles.put(resourceNumber, new Pair<Landing, Landing>(tempLandingTile, null));
@@ -242,7 +263,6 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
 		// Auto-generated method stub
-		
 	}
 
 	@Override
@@ -309,8 +329,13 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
         canvas.restore();
 	}
 	
+	//Gives the bitmap of the landing
+	private Bitmap getLandingsBitmap(Resource resource) {
+		return bitmapCache.get(20 + resource.ordinal());
+	}
+	
 	private void drawLanding(Landing actualLanding, Canvas canvas) {
-		Bitmap bitmap = Bitmap.createScaledBitmap(actualLanding.getBitmap4Land(),
+		Bitmap bitmap = Bitmap.createScaledBitmap(getLandingsBitmap(actualLanding.getProvidedResource()), 
 				sizeHandler.getLandingWidth(),sizeHandler.getLandingHeight(),true);
 		Pair<Integer, Integer> coordinates = sizeHandler.getLandingCoordinates(actualLanding.getCoordinates()); 
 		canvas.drawBitmap(bitmap, coordinates.first, coordinates.second, null);

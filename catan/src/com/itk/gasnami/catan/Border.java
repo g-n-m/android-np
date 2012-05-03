@@ -9,6 +9,8 @@ public class Border {
 //		enabled, road //Later ship could be added for example...
 //	}
 	
+	//TODO: implement clickable stuff
+	
 	protected Player owner;
 	
 	public Border() {
@@ -20,7 +22,7 @@ public class Border {
 	}
 
 	@Override
-	public String toString() {
+	public  String toString() {
 		return this.owner.name();
 	}
 }

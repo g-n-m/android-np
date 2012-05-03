@@ -22,7 +22,7 @@ public class SizeHandler {
 	public SizeHandler(int displayWidth, int displayHeight, int screenFactor) {
 		this.displayWidth  = displayWidth;
 		this.displayHeight = displayHeight;
-		this.screenFactor  = screenFactor;
+		SizeHandler.screenFactor = screenFactor;
 		
 		calculateInitials();
 	}

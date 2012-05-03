@@ -2,7 +2,7 @@ package com.itk.gasnami.catan;
 
 import java.util.HashMap;
 
-import android.graphics.Bitmap;
+//import android.graphics.Bitmap;
 import android.util.Pair;
 
 public class Landing {
@@ -18,40 +18,36 @@ public class Landing {
 		brick, lumber, wool, grain, ore, none, any
 	}
 
-	private int resourceNumber = 0; // bitmap ehhez is?
-	private Bitmap bitmap4Land;
+	private int resourceNumber = 0; 
 	private HashMap<Player, Integer> production;
 	private Resource providedResource; // összefügg a typeOfLand - el!
 	private Pair<Integer, Integer> coordinates; // tesztMember a rajzoláshoz
 	private boolean isActive = true;
 
-	public Landing(int resourceNumber, Bitmap bitmap4Land,
+	public Landing(int resourceNumber, 
 			Resource providedResource, Pair<Integer, Integer> coordinates) {
 		super();
 		this.resourceNumber = resourceNumber;
-		this.bitmap4Land = bitmap4Land;
 		this.production = null;
 		this.providedResource = providedResource;
 		this.coordinates = coordinates;
 	}
 
-	public Landing(int resourceNumber, Bitmap bitmap4Land,
+	public Landing(int resourceNumber, 
 			HashMap<Player, Integer> production, Resource providedResource,
 			Pair<Integer, Integer> coordinates) {
 		super();
 		this.resourceNumber = resourceNumber;
-		this.bitmap4Land = bitmap4Land;
 		this.production = production;
 		this.providedResource = providedResource;
 		this.coordinates = coordinates;
 	}
 	
-	public Landing(int resourceNumber, Bitmap bitmap4Land,
+	public Landing(int resourceNumber, 
 			HashMap<Player, Integer> production, Resource providedResource,
 			Pair<Integer, Integer> coordinates, boolean isActive) {
 		super();
 		this.resourceNumber = resourceNumber;
-		this.bitmap4Land = bitmap4Land;
 		this.production = production;
 		this.providedResource = providedResource;
 		this.coordinates = coordinates;
@@ -77,10 +73,6 @@ public class Landing {
 
 	public int getResourceNumber() {
 		return resourceNumber;
-	}
-
-	public Bitmap getBitmap4Land() {
-		return bitmap4Land;
 	}
 
 	public Resource getProvidedResource() {

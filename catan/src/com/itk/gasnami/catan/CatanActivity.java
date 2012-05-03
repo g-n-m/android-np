@@ -1,16 +1,11 @@
 package com.itk.gasnami.catan;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Random;
 
 import com.itk.gasnami.catan.Corner.Fundament;
 import com.itk.gasnami.catan.Landing.Player;
-import com.itk.gasnami.catan.Landing.Resource;
 
 import android.app.Activity;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Pair;
 import android.view.View;
@@ -18,8 +13,6 @@ import android.view.Window;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.HorizontalScrollView;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 public class CatanActivity extends Activity {
@@ -53,10 +46,23 @@ public class CatanActivity extends Activity {
 //				debugText +=" " + 
 //				landingTiles.get(7).first.getProduction().get(Player.values()[i]);
 //			}
-			Toast.makeText(CatanActivity.this, debugPanel.vertices[0][0].toString(), Toast.LENGTH_LONG).show();
-			debugPanel.vertices[0][0].build(Player.Player1, Fundament.settlement);
-			Toast.makeText(CatanActivity.this, debugPanel.vertices[0][0].toString(), Toast.LENGTH_LONG).show();
-			Toast.makeText(CatanActivity.this, debugPanel.edges[0][0].toString(), Toast.LENGTH_LONG).show();
+			if(debugPanel.vertices[0][0] == null) {
+				debugText = "nullValue!";
+			} else {
+				debugText = debugPanel.vertices[0][0].toString();
+			}
+			Toast.makeText(CatanActivity.this, debugText, Toast.LENGTH_SHORT).show();
+			
+			if(debugPanel.edges[0][0] == null) {
+				debugText = "nullValue!";
+			} else {
+				debugText = debugPanel.edges[0][0].toString();
+			}
+			Toast.makeText(CatanActivity.this, debugText, Toast.LENGTH_SHORT).show();
+			
+			Toast.makeText(CatanActivity.this, debugPanel.vertices[4][4].toString(), Toast.LENGTH_LONG).show();
+			debugPanel.vertices[4][4].build(Player.Player1, Fundament.settlement);
+			Toast.makeText(CatanActivity.this, debugPanel.vertices[4][4].toString(), Toast.LENGTH_LONG).show();
 ////			Toast.makeText(CatanActivity.this, debugText, Toast.LENGTH_LONG).show();
 //			Toast.makeText(CatanActivity.this, landingTiles.keySet().toString(), Toast.LENGTH_SHORT).show();
 //			resourceNumbers.remove(2);
