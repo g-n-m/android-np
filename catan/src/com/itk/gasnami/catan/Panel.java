@@ -54,9 +54,9 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	private HashMap<Integer, Pair<Landing, Landing> > landingTiles = 
 			new HashMap<Integer, Pair<Landing,Landing>>();
 	
-	//TODO: ebből megfelelő elem kell...
-	private int[][] vertices = new int[11][6];
-	private int[][] edges = new int[6][11];
+	//TODO: visibility should be changed!
+	public Corner[][] vertices = new Corner[11][6];	
+	public Border[][] edges = new Border[6][11];
 	
 	//NOTE: bővítés esetén erre kell alternatíva
 	//TODO: Valószínűleg paraméterben kéne érkezzen
@@ -66,6 +66,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 		super(context);
 		fillBitmapCache();
         InitializeTiles();
+        InitializeBorders();
 		getHolder().addCallback(this);
 		thread = new CatanThread(this);
 		setFocusable(true);
@@ -122,6 +123,15 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     					R.drawable.desert), productionTest, Resource.none, 
     					coordinates.get(0), false), 
     			null));
+    }
+    
+    public void InitializeBorders() {
+    	for(int j = 0; j < 6; j++) {
+    		for(int i = 0; i < 11; i++) {
+    			vertices[i][j] = new Corner();
+    			edges[j][i] = new Border();
+    		}
+    	}
     }
     
     //Generating tiles of a given type

@@ -8,13 +8,9 @@ import android.util.Pair;
 public class Landing {
 
 	//TODO: ennek máshol kéne legyen a helye
+	//NOTE: none stands for free particles
 	public enum Player {
-		Player1, Player2, Player3, Player4
-	}
-	
-	//TODO: helyre kell tenni (own class)
-	public enum area {
-		disabled, enabled, settlement, city
+		Player1, Player2, Player3, Player4, none
 	}
 
 	//NOTE: any stands for Ports
@@ -68,6 +64,15 @@ public class Landing {
 
 	public void setProduction(HashMap<Player, Integer> production) {
 		this.production = production;
+	}
+	
+	public void updateProduction(Player player, int quantity) {
+		if(this.production.containsKey(player)){
+//			this.production.remove(player); // kell ez?
+			this.production.put(player, quantity);
+		} else {
+			// le lehetne kezelni (log?), de exception-el nem biztos, hogy stabil lenne
+		}
 	}
 
 	public int getResourceNumber() {
