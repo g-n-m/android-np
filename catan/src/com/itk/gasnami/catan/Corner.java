@@ -1,5 +1,7 @@
 package com.itk.gasnami.catan;
 
+import android.content.Context;
+
 import com.itk.gasnami.catan.Landing.Player;
 
 public class Corner extends Border {
@@ -10,9 +12,20 @@ public class Corner extends Border {
 	}
 	
 	//TODO: Ports?
+	//TODO: Coordinates?
+	//TODO: Clickable?
+	//TODO: Bitmap?
 	Fundament fundament;
 	
 	public Corner() {
+		this.setClickable(false);
+		this.owner = Player.none;
+		this.fundament = Fundament.enabled;
+	}
+	
+	public Corner(Context context) {
+		super(context);
+		this.setClickable(false);
 		this.owner = Player.none;
 		this.fundament = Fundament.enabled;
 	}

@@ -15,6 +15,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Canvas.VertexMode;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
@@ -96,6 +97,8 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
         bitmapCache.put(23, BitmapFactory.decodeResource(getResources(), R.drawable.field));
         bitmapCache.put(24, BitmapFactory.decodeResource(getResources(), R.drawable.mountain));
         bitmapCache.put(25, BitmapFactory.decodeResource(getResources(), R.drawable.desert));
+        //BuildingParts
+        bitmapCache.put(31, BitmapFactory.decodeResource(getResources(), R.drawable.settlementGray));
         //Background
         bitmapCache.put(101,  BitmapFactory.decodeResource(getResources(), R.drawable.water1));
         bitmapCache.put(102,  BitmapFactory.decodeResource(getResources(), R.drawable.water2));
@@ -134,8 +137,9 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     public void InitializeBorders() {
     	for(int j = 0; j < 6; j++) {
     		for(int i = 0; i < 11; i++) {
-    			vertices[i][j] = new Corner();
-    			edges[j][i] = new Border();
+    			vertices[i][j] = new Corner(getContext());
+    			edges[j][i] = new Border(getContext());
+    			vertices[i][j].setBackgroundDrawable(bitmapCache.get(31));
     		}
     	}
     	
@@ -325,6 +329,13 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 				drawLanding(actualLanding.second, canvas);
 			}
 		}
+		
+		for(int j = 0; j < 6; j++) {
+    		for(int i = 0; i < 11; i++) {
+    			vertices[i][j] 
+//    			edges[j][i].
+    		}
+    	}
 		
         canvas.restore();
 	}
