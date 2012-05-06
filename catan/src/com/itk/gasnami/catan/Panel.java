@@ -15,7 +15,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Canvas.VertexMode;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
@@ -24,6 +24,7 @@ import android.view.ScaleGestureDetector;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
+import android.view.View.MeasureSpec;
 
 public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	//Drawing parameters
@@ -47,17 +48,14 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     private float mScaleFactor = 1.f;
 	
     //Handle bitmaps
-	private HashMap<Integer, Bitmap> bitmapCache = new HashMap<Integer, Bitmap>();
+    //TODO: ezt is át kéne helyezni? Lekérdezések?
+	public HashMap<Integer, Bitmap> bitmapCache = new HashMap<Integer, Bitmap>();
 	
 	//Game parameters
 	private CatanThread thread;
 	
 	private HashMap<Integer, Pair<Landing, Landing> > landingTiles = 
 			new HashMap<Integer, Pair<Landing,Landing>>();
-	
-	//TODO: visibility should be changed!
-	public Corner[][] vertices = new Corner[11][6];	
-	public Border[][] edges = new Border[6][11];
 	
 	//NOTE: bővítés esetén erre kell alternatíva
 	//TODO: Valószínűleg paraméterben kéne érkezzen
@@ -67,7 +65,6 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 		super(context);
 		fillBitmapCache();
         InitializeTiles();
-        InitializeBorders();
 		getHolder().addCallback(this);
 		thread = new CatanThread(this);
 		setFocusable(true);
@@ -98,7 +95,8 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
         bitmapCache.put(24, BitmapFactory.decodeResource(getResources(), R.drawable.mountain));
         bitmapCache.put(25, BitmapFactory.decodeResource(getResources(), R.drawable.desert));
         //BuildingParts
-        bitmapCache.put(31, BitmapFactory.decodeResource(getResources(), R.drawable.settlementGray));
+        bitmapCache.put(31, BitmapFactory.decodeResource(getResources(), R.drawable.settlement_gray));
+        bitmapCache.put(32, BitmapFactory.decodeResource(getResources(), R.drawable.city_gray));
         //Background
         bitmapCache.put(101,  BitmapFactory.decodeResource(getResources(), R.drawable.water1));
         bitmapCache.put(102,  BitmapFactory.decodeResource(getResources(), R.drawable.water2));
@@ -132,35 +130,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     	landingTiles.put(7, new Pair<Landing, Landing>(
     			new Landing(0, productionTest, Resource.none, coordinates.get(0), false), null));
     }
-    
-    //Initialize the vertices & edges
-    public void InitializeBorders() {
-    	for(int j = 0; j < 6; j++) {
-    		for(int i = 0; i < 11; i++) {
-    			vertices[i][j] = new Corner(getContext());
-    			edges[j][i] = new Border(getContext());
-    			vertices[i][j].setBackgroundDrawable(bitmapCache.get(31));
-    		}
-    	}
-    	
-    	//Handle the top left part of the matrix:
-    	vertices[ 0][ 0] = null;	edges[ 0][ 0] = null;
-    	vertices[ 0][ 1] = null;	edges[ 1][ 0] = null;
-    	vertices[ 1][ 0] = null;	edges[ 0][ 1] = null;
-    	//Handle the top right part of the matrix:    	
-    	vertices[ 9][ 0] = null;	edges[ 0][ 9] = null;
-    	vertices[10][ 0] = null;	edges[ 0][10] = null;
-    	vertices[10][ 1] = null;	edges[ 1][10] = null;
-    	//Handle the bottom left part of the matrix:
-    	vertices[ 0][ 4] = null;	edges[ 0][ 4] = null;
-    	vertices[ 0][ 5] = null;	edges[ 0][ 5] = null;
-    	vertices[ 1][ 5] = null;	edges[ 1][ 5] = null;
-    	//Handle the bottom right part of the matrix:
-    	vertices[10][ 4] = null;	edges[ 4][10] = null;
-    	vertices[10][ 5] = null;	edges[ 5][10] = null;
-    	vertices[ 9][ 5] = null;	edges[ 5][ 9] = null;
-    }
-    
+        
     //Generating tiles of a given type
     public void GenerateTilesByType(int nOfTiles, ArrayList<Integer> resourceNumbers, 
     		Resource resource, ArrayList<Pair<Integer, Integer>> coordinates ) {
@@ -330,18 +300,12 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 			}
 		}
 		
-		for(int j = 0; j < 6; j++) {
-    		for(int i = 0; i < 11; i++) {
-    			vertices[i][j] 
-//    			edges[j][i].
-    		}
-    	}
-		
         canvas.restore();
 	}
 	
 	//Gives the bitmap of the landing
 	private Bitmap getLandingsBitmap(Resource resource) {
+//		if(resource.equals(Resource.lumber)) return bitmapCache.get(31);
 		return bitmapCache.get(20 + resource.ordinal());
 	}
 	
