@@ -1,9 +1,6 @@
 package com.itk.gasnami.catan;
 
 import android.content.Context;
-import android.util.DisplayMetrics;
-import android.view.WindowManager;
-import android.view.View.MeasureSpec;
 
 import com.itk.gasnami.catan.Landing.Player;
 
@@ -18,7 +15,7 @@ public class Corner extends Border {
 	//TODO: Coordinates?
 	//TODO: Clickable?
 	//TODO: Bitmap?
-	Fundament fundament;
+	public Fundament fundament;
 	
 	public Corner() {
 		this.setClickable(false);

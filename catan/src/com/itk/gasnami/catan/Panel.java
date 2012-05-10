@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
 
+import com.itk.gasnami.catan.Corner.Fundament;
 import com.itk.gasnami.catan.Landing.Player;
 import com.itk.gasnami.catan.Landing.Resource;
 
@@ -15,7 +16,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
@@ -24,7 +24,8 @@ import android.view.ScaleGestureDetector;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder;
 import android.view.WindowManager;
-import android.view.View.MeasureSpec;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.RelativeLayout;
 
 public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	//Drawing parameters
@@ -57,6 +58,12 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	private HashMap<Integer, Pair<Landing, Landing> > landingTiles = 
 			new HashMap<Integer, Pair<Landing,Landing>>();
 	
+	//TODO: visibility should be changed!
+	//TODO: ennek saját hely kéne, a Panel fölé kell egy manager osztály!
+	public Corner[][] vertices = new Corner[11][6];	
+	public Border[][] edges = new Border[6][11];
+		
+	
 	//NOTE: bővítés esetén erre kell alternatíva
 	//TODO: Valószínűleg paraméterben kéne érkezzen
 	private int nOfPlayers = 2; 
@@ -65,6 +72,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 		super(context);
 		fillBitmapCache();
         InitializeTiles();
+        InitializeBorders();
 		getHolder().addCallback(this);
 		thread = new CatanThread(this);
 		setFocusable(true);
@@ -95,6 +103,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
         bitmapCache.put(24, BitmapFactory.decodeResource(getResources(), R.drawable.mountain));
         bitmapCache.put(25, BitmapFactory.decodeResource(getResources(), R.drawable.desert));
         //BuildingParts
+        bitmapCache.put(30,  BitmapFactory.decodeResource(getResources(), R.drawable.none));
         bitmapCache.put(31, BitmapFactory.decodeResource(getResources(), R.drawable.settlement_gray));
         bitmapCache.put(32, BitmapFactory.decodeResource(getResources(), R.drawable.city_gray));
         //Background
@@ -102,6 +111,41 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
         bitmapCache.put(102,  BitmapFactory.decodeResource(getResources(), R.drawable.water2));
         bitmapCache.put(103,  BitmapFactory.decodeResource(getResources(), R.drawable.water3));
         bitmapCache.put(104,  BitmapFactory.decodeResource(getResources(), R.drawable.water4));
+    }
+	
+	public void InitializeBorders() {
+    	for(int j = 0; j < 6; j++) {
+    		for(int i = 0; i < 11; i++) {
+    			
+    			if(i + j > 1 || i + j < 14 || (j == 0 && (i != 9 || i!= 10)) || (j==1 && i!=10)) {
+    				vertices[i][j] = new Corner(getContext());
+        			edges[j][i] = new Border(getContext());
+        			RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams( LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        			vertices[i][j].setImageBitmap(bitmapCache.get(31));
+//        			vertices[i][j].setVisibility(INVISIBLE);
+        			vertices[i][j].setLayoutParams( params );
+        			//NOTE: stands for debug:
+        			vertices[i][j].fundament = Fundament.settlement;
+    			}    			
+    		}
+    	}
+    	
+    	//Handle the top left part of the matrix:
+    	vertices[ 0][ 0] = null;	edges[ 0][ 0] = null;
+    	vertices[ 0][ 1] = null;	edges[ 1][ 0] = null;
+    	vertices[ 1][ 0] = null;	edges[ 0][ 1] = null;
+    	//Handle the top right part of the matrix:    	
+    	vertices[ 9][ 0] = null;	edges[ 0][ 9] = null;
+    	vertices[10][ 0] = null;	edges[ 0][10] = null;
+    	vertices[10][ 1] = null;	edges[ 1][10] = null;
+    	//Handle the bottom left part of the matrix:
+    	vertices[ 0][ 4] = null;	edges[ 0][ 4] = null;
+    	vertices[ 0][ 5] = null;	edges[ 0][ 5] = null;
+    	vertices[ 1][ 5] = null;	edges[ 1][ 5] = null;
+    	//Handle the bottom right part of the matrix:
+    	vertices[10][ 4] = null;	edges[ 4][10] = null;
+    	vertices[10][ 5] = null;	edges[ 5][10] = null;
+    	vertices[ 9][ 5] = null;	edges[ 5][ 9] = null;
     }
 	
     public void InitializeTiles() {
@@ -300,6 +344,18 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 			}
 		}
 		
+		for(int j = 0; j < 6; j++) {
+    		for(int i = 0; i < 11; i++) {
+    			
+    			if(vertices[i][j] != null) {
+    				Bitmap bitmap = Bitmap.createScaledBitmap(bitmapCache.get(30 + vertices[i][j].fundament.ordinal()), 
+    						sizeHandler.getBuildingWidth(),sizeHandler.getBuildingHeight(),true);
+    				Pair<Integer, Integer> coordinates = sizeHandler.getCornerCoordinates(i, j);
+    				canvas.drawBitmap(bitmap, coordinates.first, coordinates.second, null);
+    			}    			
+    		}
+    	}
+		
         canvas.restore();
 	}
 	
@@ -310,6 +366,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	}
 	
 	private void drawLanding(Landing actualLanding, Canvas canvas) {
+		//FIXME: itt sokszorozódnak meg a képek! Ezt a bitmapCache kéne tudja?
 		Bitmap bitmap = Bitmap.createScaledBitmap(getLandingsBitmap(actualLanding.getProvidedResource()), 
 				sizeHandler.getLandingWidth(),sizeHandler.getLandingHeight(),true);
 		Pair<Integer, Integer> coordinates = sizeHandler.getLandingCoordinates(actualLanding.getCoordinates()); 

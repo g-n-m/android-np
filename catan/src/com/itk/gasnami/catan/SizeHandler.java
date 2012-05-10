@@ -7,6 +7,8 @@ public class SizeHandler {
 	private static int screenFactor = 4; //TODO: should depend on the screensize!
 	private int landingWidth;
 	private int landingHeight;
+	private int buildingWidth;
+	private int buildingHeight;
 	private int landingVPadding;
 	private int chipsSize;
 	
@@ -30,6 +32,8 @@ public class SizeHandler {
 	private void calculateInitials() {
 		landingWidth = (int)338/screenFactor;
 		landingHeight = (int)390/screenFactor;
+		buildingWidth = (int)(27/screenFactor*2.5);
+		buildingHeight = (int)(41/screenFactor*2.5);
 		landingVPadding = (int)291/screenFactor;
 		chipsSize = (int)124/screenFactor;
 		
@@ -48,12 +52,23 @@ public class SizeHandler {
 				j * landingVPadding + posiotionPaddingVertical);
 	}
 	
+	//TODO: what about chipses?
+	public Pair<Integer, Integer> getCornerCoordinates(int x, int y) {
+		
+		int vPadding = (x + 1) % 2;
+		int hPadding =  y % 2;
+		return new Pair<Integer, Integer>((int)(x * 0.5 * landingWidth) + positionPaddingHorizontal  - buildingWidth / 2,
+				y * landingVPadding + ((vPadding + hPadding) % 2) * (landingVPadding / 3) + posiotionPaddingVertical  - (int)(buildingHeight * 0.85));
+	}
+	
 	// implements rescaling functionality
 	public void reScale(float scaleFactor) {
 		calculateInitials();
 		
 		landingWidth *= scaleFactor;
 		landingHeight *= scaleFactor;
+		buildingWidth *= scaleFactor;
+		buildingHeight *= scaleFactor;
 		landingVPadding *= scaleFactor;
 		chipsSize *= scaleFactor;
 		
@@ -69,6 +84,14 @@ public class SizeHandler {
 	
 	public int getLandingWidth() {
 		return landingWidth;
+	}
+
+	public int getBuildingHeight() {
+		return buildingHeight;
+	}
+	
+	public int getBuildingWidth() {
+		return buildingWidth;
 	}
 
 	public int getLandingHeight() {

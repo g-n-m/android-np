@@ -69,11 +69,16 @@ public class CatanActivity extends Activity {
 			}
 			Toast.makeText(CatanActivity.this, debugText, Toast.LENGTH_SHORT).show();
 			*/
+			SizeHandler sizeHandler = new SizeHandler(1, 1);
+			
 			Toast.makeText(CatanActivity.this, vertices[4][4].toString(), Toast.LENGTH_LONG).show();
 			vertices[4][4].build(Player.Player1, Fundament.settlement);
 			Toast.makeText(CatanActivity.this, vertices[4][4].toString(), Toast.LENGTH_LONG).show();
 			debugText = "h: " + vertices[4][4].getHeight() + " w: " + vertices[4][4].getWidth() +
-					" " + vertices[4][4].getDrawable();
+//					" " + vertices[4][4].getDrawable();
+					" " + (30 + vertices[4][4].fundament .ordinal()) +
+					" " + sizeHandler.getCornerCoordinates(4, 4).first +
+					" " + sizeHandler.getCornerCoordinates(4, 4).second;
 			Toast.makeText(CatanActivity.this, debugText , Toast.LENGTH_LONG).show();
 ////			Toast.makeText(CatanActivity.this, debugText, Toast.LENGTH_LONG).show();
 //			Toast.makeText(CatanActivity.this, landingTiles.keySet().toString(), Toast.LENGTH_SHORT).show();
