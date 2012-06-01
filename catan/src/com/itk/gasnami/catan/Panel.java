@@ -12,10 +12,12 @@ import com.itk.gasnami.catan.Landing.Player;
 import com.itk.gasnami.catan.Landing.Resource;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Display;
@@ -30,6 +32,7 @@ import android.widget.RelativeLayout;
 public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	//Drawing parameters
 	int stepper = 0;
+	private Boolean shouldRescale = false;
 	
 	Display display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 	int displayWidth = display.getWidth();
@@ -50,7 +53,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	
     //Handle bitmaps
     //TODO: ezt is át kéne helyezni? Lekérdezések?
-	public HashMap<Integer, Bitmap> bitmapCache = new HashMap<Integer, Bitmap>();
+	public static HashMap<Integer, Pair<Bitmap, Integer> > bitmapCache = new HashMap<Integer, Pair<Bitmap, Integer> >();
 	
 	//Game parameters
 	private CatanThread thread;
@@ -66,7 +69,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	
 	//NOTE: bővítés esetén erre kell alternatíva
 	//TODO: Valószínűleg paraméterben kéne érkezzen
-	private int nOfPlayers = 2; 
+	private int nOfPlayers = 2;
 
 	public Panel(Context context) {
 		super(context);
@@ -79,38 +82,43 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 		
 		// Create our ScaleGestureDetector
 		mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+		
+		Pair<Float, Resources> customparams = new Pair<Float, Resources>(mScaleFactor, getResources());
+		new ResizeTask().execute(customparams);
 	}
 	
 	private void fillBitmapCache() {
 		//Chipses
-		bitmapCache.put(0,  BitmapFactory.decodeResource(getResources(), R.drawable.none));
-        bitmapCache.put(7,  BitmapFactory.decodeResource(getResources(), R.drawable.bandit3));
-        bitmapCache.put(2,  BitmapFactory.decodeResource(getResources(), R.drawable.c02));
-        bitmapCache.put(3,  BitmapFactory.decodeResource(getResources(), R.drawable.c03));
-        bitmapCache.put(4,  BitmapFactory.decodeResource(getResources(), R.drawable.c04));
-        bitmapCache.put(5,  BitmapFactory.decodeResource(getResources(), R.drawable.c05));
-        bitmapCache.put(6,  BitmapFactory.decodeResource(getResources(), R.drawable.c06_r));
-        bitmapCache.put(8,  BitmapFactory.decodeResource(getResources(), R.drawable.c08_r));
-        bitmapCache.put(9,  BitmapFactory.decodeResource(getResources(), R.drawable.c09));
-        bitmapCache.put(10, BitmapFactory.decodeResource(getResources(), R.drawable.c10));
-        bitmapCache.put(11, BitmapFactory.decodeResource(getResources(), R.drawable.c11));
-        bitmapCache.put(12, BitmapFactory.decodeResource(getResources(), R.drawable.c12));
+		bitmapCache.put(0,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.none), R.drawable.none));
+        bitmapCache.put(7,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.bandit3), R.drawable.bandit3));
+        bitmapCache.put(2,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.c02), R.drawable.c02));
+        bitmapCache.put(3,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.c03), R.drawable.c03));
+        bitmapCache.put(4,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.c04), R.drawable.c04));
+        bitmapCache.put(5,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.c05), R.drawable.c05));
+        bitmapCache.put(6,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.c06_r), R.drawable.c06_r));
+        bitmapCache.put(8,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.c08_r), R.drawable.c08_r));
+        bitmapCache.put(9,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.c09), R.drawable.c09));
+        bitmapCache.put(10, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.c10), R.drawable.c10));
+        bitmapCache.put(11, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.c11), R.drawable.c11));
+        bitmapCache.put(12, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.c12), R.drawable.c12));
         //LandingTiles
-        bitmapCache.put(20, BitmapFactory.decodeResource(getResources(), R.drawable.hill));
-        bitmapCache.put(21, BitmapFactory.decodeResource(getResources(), R.drawable.forest));
-        bitmapCache.put(22, BitmapFactory.decodeResource(getResources(), R.drawable.pasture));
-        bitmapCache.put(23, BitmapFactory.decodeResource(getResources(), R.drawable.field));
-        bitmapCache.put(24, BitmapFactory.decodeResource(getResources(), R.drawable.mountain));
-        bitmapCache.put(25, BitmapFactory.decodeResource(getResources(), R.drawable.desert));
-        //BuildingParts
-        bitmapCache.put(30,  BitmapFactory.decodeResource(getResources(), R.drawable.none));
-        bitmapCache.put(31, BitmapFactory.decodeResource(getResources(), R.drawable.settlement_gray));
-        bitmapCache.put(32, BitmapFactory.decodeResource(getResources(), R.drawable.city_gray));
+        bitmapCache.put(20, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.hill), R.drawable.hill));
+        bitmapCache.put(21, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.forest), R.drawable.forest));
+        bitmapCache.put(22, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.pasture), R.drawable.pasture));
+        bitmapCache.put(23, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.field), R.drawable.field));
+        bitmapCache.put(24, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.mountain), R.drawable.mountain));
+        bitmapCache.put(25, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.desert), R.drawable.desert));
         //Background
-        bitmapCache.put(101,  BitmapFactory.decodeResource(getResources(), R.drawable.water1));
-        bitmapCache.put(102,  BitmapFactory.decodeResource(getResources(), R.drawable.water2));
-        bitmapCache.put(103,  BitmapFactory.decodeResource(getResources(), R.drawable.water3));
-        bitmapCache.put(104,  BitmapFactory.decodeResource(getResources(), R.drawable.water4));
+        bitmapCache.put(31, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.water1), R.drawable.water1));
+        bitmapCache.put(32, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.water2), R.drawable.water2));
+        bitmapCache.put(33, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.water3), R.drawable.water3));
+        bitmapCache.put(34, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.water4), R.drawable.water4));
+        //BuildingParts
+        //TODO: own none should be given..
+        bitmapCache.put(40, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.none), R.drawable.none));
+        bitmapCache.put(41, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.settlement_gray), R.drawable.settlement_gray));
+        bitmapCache.put(42, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.city_gray), R.drawable.city_gray));
+        
     }
 	
 	public void InitializeBorders() {
@@ -121,7 +129,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     				vertices[i][j] = new Corner(getContext());
         			edges[j][i] = new Border(getContext());
         			RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams( LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        			vertices[i][j].setImageBitmap(bitmapCache.get(31));
+        			vertices[i][j].setImageBitmap(bitmapCache.get(31).first);
 //        			vertices[i][j].setVisibility(INVISIBLE);
         			vertices[i][j].setLayoutParams( params );
         			//NOTE: stands for debug:
@@ -216,62 +224,67 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
         
         final int action = ev.getAction();
         switch (action & MotionEvent.ACTION_MASK) {
-        case MotionEvent.ACTION_DOWN: {
-            final float x = ev.getX();
-            final float y = ev.getY();
+        	case MotionEvent.ACTION_DOWN: {
+        		final float x = ev.getX();
+        		final float y = ev.getY();
             
-            mLastTouchX = x;
-            mLastTouchY = y;
-            mActivePointerId = ev.getPointerId(0);
-            break;
-        }
+        		mLastTouchX = x;
+        		mLastTouchY = y;
+        		mActivePointerId = ev.getPointerId(0);
+        		break;
+        	}
             
-        case MotionEvent.ACTION_MOVE: {
-            final int pointerIndex = ev.findPointerIndex(mActivePointerId);
-            final float x = ev.getX(pointerIndex);
-            final float y = ev.getY(pointerIndex);
+        	case MotionEvent.ACTION_MOVE: {
+        		final int pointerIndex = ev.findPointerIndex(mActivePointerId);
+        		final float x = ev.getX(pointerIndex);
+        		final float y = ev.getY(pointerIndex);
 
-            // Only move if the ScaleGestureDetector isn't processing a gesture.
-            if (!mScaleDetector.isInProgress()) {
-                final float dx = x - mLastTouchX;
-                final float dy = y - mLastTouchY;
+        		// Only move if the ScaleGestureDetector isn't processing a gesture.
+        		if (!mScaleDetector.isInProgress()) {
+        			final float dx = x - mLastTouchX;
+        			final float dy = y - mLastTouchY;
 
-                mPosX += dx;
-                mPosY += dy;
+        			mPosX += dx;
+        			mPosY += dy;              
+        			invalidate();
+        		}
 
-                invalidate();
-            }
-
-            mLastTouchX = x;
-            mLastTouchY = y;
-
-            break;
-        }
+        		mLastTouchX = x;
+        		mLastTouchY = y;
+        		break;
+        	}
             
-        case MotionEvent.ACTION_UP: {
-            mActivePointerId = INVALID_POINTER_ID;
-            break;
-        }
+        	case MotionEvent.ACTION_UP: {
+        		mActivePointerId = INVALID_POINTER_ID;
+        		break;
+        	}
             
-        case MotionEvent.ACTION_CANCEL: {
-            mActivePointerId = INVALID_POINTER_ID;
-            break;
-        }
+        	case MotionEvent.ACTION_CANCEL: {
+        		mActivePointerId = INVALID_POINTER_ID;
+        		break;
+        	}
         
-        case MotionEvent.ACTION_POINTER_UP: {
-            final int pointerIndex = (ev.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK) 
-                    >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
-            final int pointerId = ev.getPointerId(pointerIndex);
-            if (pointerId == mActivePointerId) {
-                // This was our active pointer going up. Choose a new
-                // active pointer and adjust accordingly.
-                final int newPointerIndex = pointerIndex == 0 ? 1 : 0;
-                mLastTouchX = ev.getX(newPointerIndex);
-                mLastTouchY = ev.getY(newPointerIndex);
-                mActivePointerId = ev.getPointerId(newPointerIndex);
-            }
-            break;
-        }
+        	case MotionEvent.ACTION_POINTER_UP: {
+        		final int pointerIndex = (ev.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK) 
+        				>> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+            	final int pointerId = ev.getPointerId(pointerIndex);
+            	if (pointerId == mActivePointerId) {
+            		// This was our active pointer going up. Choose a new
+            		// active pointer and adjust accordingly.
+            		final int newPointerIndex = pointerIndex == 0 ? 1 : 0;
+            		mLastTouchX = ev.getX(newPointerIndex);
+            		mLastTouchY = ev.getY(newPointerIndex);
+            		mActivePointerId = ev.getPointerId(newPointerIndex);
+            	}
+            
+            	if(shouldRescale){
+            		Pair<Float, Resources> customparams = new Pair<Float, Resources>(mScaleFactor, getResources());
+            		new ResizeTask().execute(customparams);
+            		shouldRescale = false;
+            	}
+            
+            	break;
+        	}
         }
         
         return true;
@@ -314,8 +327,13 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 		
 //        super.onDraw(canvas);
         canvas.save();
-        canvas.translate(mPosX, mPosY);
-        sizeHandler.reScale(mScaleFactor);
+        canvas.translate((1 + mScaleFactor / 2) * mPosX,(1 + mScaleFactor / 2) * mPosY);
+        
+//        if(shouldRescale) {
+//        	sizeHandler.reScale(mScaleFactor, bitmapCache, getResources());
+//        	shouldRescale = false;
+//        }
+//        sizeHandler.reScale(mScaleFactor, bitmapCache, getResources());
 		
 //        XXX: water beckground + animation test...
 ////		Random mRnd = new Random();
@@ -347,8 +365,10 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 		for(int j = 0; j < 6; j++) {
     		for(int i = 0; i < 11; i++) {
     			
+    			//TODO: clean + implement Borders
+    			
     			if(vertices[i][j] != null) {
-    				Bitmap bitmap = Bitmap.createScaledBitmap(bitmapCache.get(30 + vertices[i][j].fundament.ordinal()), 
+    				Bitmap bitmap = Bitmap.createScaledBitmap(bitmapCache.get(40 + vertices[i][j].fundament.ordinal()).first, 
     						sizeHandler.getBuildingWidth(),sizeHandler.getBuildingHeight(),true);
     				Pair<Integer, Integer> coordinates = sizeHandler.getCornerCoordinates(i, j);
     				canvas.drawBitmap(bitmap, coordinates.first, coordinates.second, null);
@@ -362,24 +382,35 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	//Gives the bitmap of the landing
 	private Bitmap getLandingsBitmap(Resource resource) {
 //		if(resource.equals(Resource.lumber)) return bitmapCache.get(31);
-		return bitmapCache.get(20 + resource.ordinal());
+		return bitmapCache.get(20 + resource.ordinal()).first;
 	}
 	
 	private void drawLanding(Landing actualLanding, Canvas canvas) {
 		//FIXME: itt sokszorozódnak meg a képek! Ezt a bitmapCache kéne tudja?
-		Bitmap bitmap = Bitmap.createScaledBitmap(getLandingsBitmap(actualLanding.getProvidedResource()), 
-				sizeHandler.getLandingWidth(),sizeHandler.getLandingHeight(),true);
+//		Bitmap bitmap = Bitmap.createScaledBitmap(getLandingsBitmap(actualLanding.getProvidedResource()), 
+//				sizeHandler.getLandingWidth(),sizeHandler.getLandingHeight(),true);
 		Pair<Integer, Integer> coordinates = sizeHandler.getLandingCoordinates(actualLanding.getCoordinates()); 
-		canvas.drawBitmap(bitmap, coordinates.first, coordinates.second, null);
+//		canvas.drawBitmap(bitmap, coordinates.first, coordinates.second, null);
+		Rect mRectDst = new Rect(
+				coordinates.first, 
+				coordinates.second, 
+				coordinates.first + sizeHandler.getLandingWidth(), 
+				coordinates.second + sizeHandler.getLandingHeight());
+		
+		canvas.drawBitmap(getLandingsBitmap(actualLanding.getProvidedResource()), null, mRectDst, null);
+//		canvas.drawBitmap(getLandingsBitmap(actualLanding.getProvidedResource()), coordinates.first, coordinates.second, null);
 		
 		//Resource or Bandit chips
 		int xCoord = (int) (coordinates.first + sizeHandler.getLandingWidth() / 2 - sizeHandler.getChipsSize() / 2);
 		int yCoord = (int) (coordinates.second + sizeHandler.getLandingHeight() / 2 - sizeHandler.getChipsSize() / 2);
-		bitmap = Bitmap.createScaledBitmap(
-			    bitmapCache.get(actualLanding.getIsActive() ? actualLanding.getResourceNumber() : 7),
-				sizeHandler.getChipsSize(),sizeHandler.getChipsSize(),true);
+//		bitmap = Bitmap.createScaledBitmap(
+//			    bitmapCache.get(actualLanding.getIsActive() ? actualLanding.getResourceNumber() : 7),
+//				sizeHandler.getChipsSize(),sizeHandler.getChipsSize(),true);
 		coordinates = actualLanding.getCoordinates();
-		canvas.drawBitmap(bitmap, xCoord, yCoord, null);
+//		canvas.drawBitmap(bitmap, xCoord, yCoord, null);
+		mRectDst.set(xCoord, yCoord, xCoord + sizeHandler.getChipsSize(), yCoord + sizeHandler.getChipsSize());
+		canvas.drawBitmap(bitmapCache.get(actualLanding.getIsActive() ? actualLanding.getResourceNumber() : 7).first, null, mRectDst, null);
+//		canvas.drawBitmap(bitmapCache.get(actualLanding.getIsActive() ? actualLanding.getResourceNumber() : 7).first, xCoord, yCoord, null);
 	}
 	
 	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
@@ -388,8 +419,9 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	        mScaleFactor *= detector.getScaleFactor();
 	        
 	        // Don't let the object get too small or too large.
-	        mScaleFactor = Math.max(1.f, Math.min(mScaleFactor, 1.f * sizeHandler.getScreenFactor()));
-
+	        mScaleFactor = Math.max(1.f, Math.min(mScaleFactor, 1.f * SizeHandler.getScreenFactor()));
+	        sizeHandler.reScale(mScaleFactor);
+	        shouldRescale = true;
 	        invalidate();
 	        return true;
 	    }

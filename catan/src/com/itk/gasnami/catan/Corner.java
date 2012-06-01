@@ -42,7 +42,7 @@ public class Corner extends Border {
 		return this.owner.name() + "'s " + this.fundament.name();
 	}
 	
-	//FIXME: what about overriding onMeasure?
+	//TODO: what about overriding onMeasure?
 	//TODO: should this placed into Border? In that case would Corner extend it?
 //	@Override
 //	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {		

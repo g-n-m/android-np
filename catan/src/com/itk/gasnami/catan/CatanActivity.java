@@ -131,6 +131,7 @@ public class CatanActivity extends Activity {
 //        			vertices[i][j].setTr
 //        			vertices[i][j].setVisibility(View.VISIBLE);
     				
+        			//FIXME: absoluteLayout-ra, vagy tárolni hova mehet a click.
         			layout.addView(vertices[i][j]);
     			}
     			
