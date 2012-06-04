@@ -34,6 +34,6 @@ public class Border extends ImageView {
 
 	@Override
 	public  String toString() {
-		return this.owner.name();
+		return this.owner.name() + "'s";
 	}
 }

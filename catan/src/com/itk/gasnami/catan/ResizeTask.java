@@ -28,16 +28,20 @@ public class ResizeTask extends AsyncTask<Pair<Float, Resources>,
 				int withSize = 0; int heightSize = 0;
 				
 				// Case of Chipses
-				if(index<13){
+				if(index < 13){
 					withSize =SizeHandler.getChipsSize(); heightSize = SizeHandler.getChipsSize();
 				}
 				// Case of Landing tiles
-				else if(index<34){
+				else if(index < 34){
 					withSize =SizeHandler.getLandingWidth(); heightSize = SizeHandler.getLandingHeight();
 				}
 				// Case of buildings & roads
-				else if(index<60){
+				else if(index < 60){
 					withSize =SizeHandler.getBuildingWidth(); heightSize = SizeHandler.getBuildingHeight();
+				}
+				
+				else if(index < 70){
+					withSize =SizeHandler.getBuildingHeight(); heightSize = SizeHandler.getBuildingWidth();
 				}
 				
 				Panel.bitmapCache.put(index, new Pair<Bitmap, Integer>(

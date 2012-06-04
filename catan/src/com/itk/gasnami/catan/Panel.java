@@ -29,6 +29,7 @@ import android.view.SurfaceHolder;
 import android.view.WindowManager;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	// int stepper = 0;
@@ -117,7 +118,10 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
         bitmapCache.put(41, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.settlement_gray), R.drawable.settlement_gray));
         bitmapCache.put(42, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.city_gray), R.drawable.city_gray));
         //RoadParts
-        bitmapCache.put(54, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.road_gray), R.drawable.road_gray));
+        bitmapCache.put(58, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.road_gray), R.drawable.road_gray));
+        //Rotated RoadParts
+        bitmapCache.put(68, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.road_gray), R.drawable.road_gray60));
+        bitmapCache.put(69, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.road_gray), R.drawable.road_gray120));
         
     }
 	
@@ -129,7 +133,6 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     			
     			//handle vertical edges in odd rows 
     			if(i == 0 && (j == 1 || j == 5 || j == 9)) {
-    				i++;
     				continue;
     			}
     			
@@ -161,6 +164,8 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     	edges[ 9][ 9] = null;
     	edges[ 9][10] = null;
     	edges[ 8][10] = null;
+    	
+    	Toast.makeText(getContext(), "roadTest: [1][1]=" + edges[1][1].toString(), Toast.LENGTH_SHORT).show();
     }
 	
 	public void InitializeCorners() {
@@ -442,14 +447,24 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     						coordinates.first + SizeHandler.getBuildingWidth(), 
     						coordinates.second + SizeHandler.getBuildingHeight());
     				
+    				int roadOrientation = 0; 
+    				
     				if(j % 2 == 0){
-    					Matrix matrix = new Matrix();
-    					matrix.setRotate(60.0f, SizeHandler.getBuildingWidth()/2, SizeHandler.getBuildingHeight()/2);
-    					canvas.drawBitmap(bitmapCache.get(50 + edges[i][j].owner.ordinal()).first, matrix, null);
+    					roadOrientation = j % 4 == 2 ? 1 - i % 2 : i % 2;
+    					roadOrientation += 10;
+    					mRectDst.right = mRectDst.right - SizeHandler.getBuildingWidth() + SizeHandler.getBuildingHeight();
+    					mRectDst.bottom = mRectDst.bottom - SizeHandler.getBuildingHeight() + SizeHandler.getBuildingWidth();
+    				} 
+    				else if((j % 4 == 3 && i % 2 == 0) || (j % 4 == 1 && i % 2 == 1) ) {
+    					if(j == 5 && i == 9) {
+    						mRectDst.left += 0.5 * SizeHandler.getLandingWidth();
+    						mRectDst.right += 0.5 * SizeHandler.getLandingWidth();
+    						canvas.drawBitmap(bitmapCache.get(50 + roadOrientation + 2 * edges[i][j].owner.ordinal()).first, null, mRectDst, null);
+    					}
     					continue;
     				}
     				
-    				canvas.drawBitmap(bitmapCache.get(50 + edges[i][j].owner.ordinal()).first, null, mRectDst, null);
+    				canvas.drawBitmap(bitmapCache.get(50 + roadOrientation + 2 * edges[i][j].owner.ordinal()).first, null, mRectDst, null);
     			}
     		}
     	}

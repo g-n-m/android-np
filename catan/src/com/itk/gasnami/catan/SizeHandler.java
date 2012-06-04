@@ -63,9 +63,11 @@ public class SizeHandler {
 	public Pair<Integer, Integer> getBorderCoordinates(int x, int y) {
 		
 		int vPadding = (y + 1) % 2;
-//		int hPadding =  y % 2;
-		return new Pair<Integer, Integer>((int)((x * 0.5 + vPadding * 0.25) * landingWidth) + positionPaddingHorizontal  - buildingWidth / 2,
-				(int)((y * 0.5 + 0.25)* landingVPadding) + posiotionPaddingVertical  - (int)(buildingHeight * 0.85));
+		int width = y % 2 == 0 ? buildingHeight : buildingWidth;
+		int height = y % 2 == 0 ? buildingWidth : buildingHeight;
+		
+		return new Pair<Integer, Integer>((int)((x * 0.5 + vPadding * 0.25) * landingWidth) + positionPaddingHorizontal  - width / 2,
+				(int)((y * 0.5 + 0.25)* landingVPadding) + posiotionPaddingVertical  - (int)(height * 0.95));
 	}
 	
 	// implements rescaling functionality
