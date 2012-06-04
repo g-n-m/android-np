@@ -13,7 +13,7 @@ import android.util.Pair;
 public class ResizeTask extends AsyncTask<Pair<Float, Resources>, 
 											Void, 
 											Boolean > {
-
+	// This is doing all the bitmap resize in a background thread 
 	@Override
 	protected Boolean doInBackground(
 			Pair<Float, Resources>... params) {
@@ -21,32 +21,32 @@ public class ResizeTask extends AsyncTask<Pair<Float, Resources>,
 		Set<Integer> keys = Panel.bitmapCache.keySet();
 		Iterator<Integer> itr = keys.iterator();
 		Resources res = params[0].second;
-		float scaleFactor = params[0].first;
 	
 		while(itr.hasNext()) {
 			int index = itr.next();
 			try {
-				BitmapFactory.Options opts = new BitmapFactory.Options();
-				opts.inSampleSize = (int)(1.0f * SizeHandler.getScreenFactor()/scaleFactor);
-		    
+				int withSize = 0; int heightSize = 0;
+				
+				// Case of Chipses
 				if(index<13){
-					Panel.bitmapCache.put(index, new Pair<Bitmap, Integer>(
+					withSize =SizeHandler.getChipsSize(); heightSize = SizeHandler.getChipsSize();
+				}
+				// Case of Landing tiles
+				else if(index<34){
+					withSize =SizeHandler.getLandingWidth(); heightSize = SizeHandler.getLandingHeight();
+				}
+				// Case of buildings & roads
+				else if(index<60){
+					withSize =SizeHandler.getBuildingWidth(); heightSize = SizeHandler.getBuildingHeight();
+				}
+				
+				Panel.bitmapCache.put(index, new Pair<Bitmap, Integer>(
 		    			Bitmap.createScaledBitmap(
 		   					BitmapFactory.decodeResource(
 	  							res, 
 	    						Panel.bitmapCache.get(index).second),
-	    						SizeHandler.getChipsSize(), SizeHandler.getChipsSize(), true),
+	    						withSize, heightSize, true),
 		    					Panel.bitmapCache.get(index).second) );
-				}
-				else if(index<34){
-					Panel.bitmapCache.put(index, new Pair<Bitmap, Integer>(
-		    			Bitmap.createScaledBitmap(
-		   					BitmapFactory.decodeResource(
-								res, 
-	    						Panel.bitmapCache.get(index).second),
-		    					SizeHandler.getLandingWidth(), SizeHandler.getLandingHeight(), true),
-		    					Panel.bitmapCache.get(index).second) );
-				}
 			}
 			catch (Exception e) {
 				Log.e("MyTag", "Failure to get drawable id.", e);
@@ -56,11 +56,4 @@ public class ResizeTask extends AsyncTask<Pair<Float, Resources>,
 			
 		return true;
 	}
-
-//	@Override
-//	protected void onPostExecute(Boolean result) {
-//		if(result) {
-//			
-//		}
-//	}
 }

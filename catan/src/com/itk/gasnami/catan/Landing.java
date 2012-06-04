@@ -20,8 +20,8 @@ public class Landing {
 
 	private int resourceNumber = 0; 
 	private HashMap<Player, Integer> production;
-	private Resource providedResource; // összefügg a typeOfLand - el!
-	private Pair<Integer, Integer> coordinates; // tesztMember a rajzoláshoz
+	private Resource providedResource;
+	private Pair<Integer, Integer> coordinates;
 	private boolean isActive = true;
 
 	public Landing(int resourceNumber, 

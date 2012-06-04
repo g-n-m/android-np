@@ -17,6 +17,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.util.Log;
 import android.util.Pair;
@@ -30,10 +31,11 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.RelativeLayout;
 
 public class Panel extends SurfaceView implements SurfaceHolder.Callback{
-	//Drawing parameters
-	int stepper = 0;
+	// int stepper = 0;
+	// Parameter for do re scale in background
 	private Boolean shouldRescale = false;
 	
+	//Display parameters	
 	Display display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 	int displayWidth = display.getWidth();
 	int displayHeight = display.getHeight();	
@@ -43,30 +45,25 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	private static final int INVALID_POINTER_ID = -1;
     private float mPosX;
     private float mPosY;
-
     private float mLastTouchX;
     private float mLastTouchY;
     private int mActivePointerId = INVALID_POINTER_ID;
-
     private ScaleGestureDetector mScaleDetector;
     private float mScaleFactor = 1.f;
 	
-    //Handle bitmaps
-    //TODO: ezt is át kéne helyezni? Lekérdezések?
+    //BitmapHandling NOTE: ez a megfelelő hely ennek?
 	public static HashMap<Integer, Pair<Bitmap, Integer> > bitmapCache = new HashMap<Integer, Pair<Bitmap, Integer> >();
 	
 	//Game parameters
 	private CatanThread thread;
-	
 	private HashMap<Integer, Pair<Landing, Landing> > landingTiles = 
 			new HashMap<Integer, Pair<Landing,Landing>>();
 	
 	//TODO: visibility should be changed!
 	//TODO: ennek saját hely kéne, a Panel fölé kell egy manager osztály!
 	public Corner[][] vertices = new Corner[11][6];	
-	public Border[][] edges = new Border[6][11];
+	public Border[][] edges = new Border[10][11];
 		
-	
 	//NOTE: bővítés esetén erre kell alternatíva
 	//TODO: Valószínűleg paraméterben kéne érkezzen
 	private int nOfPlayers = 2;
@@ -75,6 +72,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 		super(context);
 		fillBitmapCache();
         InitializeTiles();
+        InitializeCorners();
         InitializeBorders();
 		getHolder().addCallback(this);
 		thread = new CatanThread(this);
@@ -90,7 +88,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	private void fillBitmapCache() {
 		//Chipses
 		bitmapCache.put(0,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.none), R.drawable.none));
-        bitmapCache.put(7,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.bandit3), R.drawable.bandit3));
+        bitmapCache.put(7,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.bandit3), R.drawable.bandit3_ghost));
         bitmapCache.put(2,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.c02), R.drawable.c02));
         bitmapCache.put(3,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.c03), R.drawable.c03));
         bitmapCache.put(4,  new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.c04), R.drawable.c04));
@@ -118,20 +116,60 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
         bitmapCache.put(40, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.none), R.drawable.none));
         bitmapCache.put(41, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.settlement_gray), R.drawable.settlement_gray));
         bitmapCache.put(42, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.city_gray), R.drawable.city_gray));
+        //RoadParts
+        bitmapCache.put(54, new Pair<Bitmap, Integer>(BitmapFactory.decodeResource(getResources(), R.drawable.road_gray), R.drawable.road_gray));
         
     }
 	
 	public void InitializeBorders() {
+    	for(int j = 0; j < 11; j++) {
+    		for(int i = 0; i < 10; i++) {
+    			Border temp = new Border(getContext());
+    			edges[i][j] = temp;
+    			
+    			//handle vertical edges in odd rows 
+    			if(i == 0 && (j == 1 || j == 5 || j == 9)) {
+    				i++;
+    				continue;
+    			}
+    			
+    			//handle vertical edges
+    			if(j % 2 == 1 && i < 9) {
+        			edges[i+1][j] = temp;
+    				i++;
+    			}    			
+    		}
+    	}
+    	
+    	//Handle the top left part of the matrix:
+    	edges[ 0][ 0] = null;
+    	edges[ 0][ 1] = null;
+    	edges[ 0][ 2] = null;
+    	edges[ 1][ 0] = null;
+    	//Handle the top right part of the matrix:    	
+    	edges[ 8][ 0] = null;
+    	edges[ 9][ 0] = null;
+    	edges[ 9][ 1] = null;
+    	edges[ 9][ 2] = null;
+    	//Handle the bottom left part of the matrix:
+    	edges[ 0][ 8] = null;
+    	edges[ 0][ 9] = null;
+    	edges[ 0][10] = null;
+    	edges[ 1][10] = null;
+    	//Handle the bottom right part of the matrix:
+    	edges[ 9][ 8] = null;
+    	edges[ 9][ 9] = null;
+    	edges[ 9][10] = null;
+    	edges[ 8][10] = null;
+    }
+	
+	public void InitializeCorners() {
     	for(int j = 0; j < 6; j++) {
     		for(int i = 0; i < 11; i++) {
     			
     			if(i + j > 1 || i + j < 14 || (j == 0 && (i != 9 || i!= 10)) || (j==1 && i!=10)) {
     				vertices[i][j] = new Corner(getContext());
-        			edges[j][i] = new Border(getContext());
-        			RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams( LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-        			vertices[i][j].setImageBitmap(bitmapCache.get(31).first);
 //        			vertices[i][j].setVisibility(INVISIBLE);
-        			vertices[i][j].setLayoutParams( params );
         			//NOTE: stands for debug:
         			vertices[i][j].fundament = Fundament.settlement;
     			}    			
@@ -139,21 +177,25 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     	}
     	
     	//Handle the top left part of the matrix:
-    	vertices[ 0][ 0] = null;	edges[ 0][ 0] = null;
-    	vertices[ 0][ 1] = null;	edges[ 1][ 0] = null;
-    	vertices[ 1][ 0] = null;	edges[ 0][ 1] = null;
+    	vertices[ 0][ 0] = null;
+    	vertices[ 0][ 1] = null;
+    	vertices[ 1][ 0] = null;
     	//Handle the top right part of the matrix:    	
-    	vertices[ 9][ 0] = null;	edges[ 0][ 9] = null;
-    	vertices[10][ 0] = null;	edges[ 0][10] = null;
-    	vertices[10][ 1] = null;	edges[ 1][10] = null;
+    	vertices[ 9][ 0] = null;
+    	vertices[10][ 0] = null;
+    	vertices[10][ 1] = null;
     	//Handle the bottom left part of the matrix:
-    	vertices[ 0][ 4] = null;	edges[ 0][ 4] = null;
-    	vertices[ 0][ 5] = null;	edges[ 0][ 5] = null;
-    	vertices[ 1][ 5] = null;	edges[ 1][ 5] = null;
+    	vertices[ 0][ 4] = null;
+    	vertices[ 0][ 5] = null;
+    	vertices[ 1][ 5] = null;
     	//Handle the bottom right part of the matrix:
-    	vertices[10][ 4] = null;	edges[ 4][10] = null;
-    	vertices[10][ 5] = null;	edges[ 5][10] = null;
-    	vertices[ 9][ 5] = null;	edges[ 5][ 9] = null;
+    	vertices[10][ 4] = null;
+    	vertices[10][ 5] = null;
+    	vertices[ 9][ 5] = null;
+    	
+    	//NOTE: stands for debug only!
+    	vertices[4][2].fundament = Fundament.city;
+    	vertices[5][2].fundament = Fundament.city;
     }
 	
     public void InitializeTiles() {
@@ -207,7 +249,7 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
     	}
     }
     
-    //Initialize a production hash with zero elements
+    //Initialize a production hash with zeros as elements
     public HashMap<Player, Integer> CreateProductionHash(){
     	HashMap<Player, Integer> productionTemp = new HashMap<Player, Integer>(); 
     	for(int j = 0; j < nOfPlayers; j++){
@@ -362,55 +404,82 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 			}
 		}
 		
-		for(int j = 0; j < 6; j++) {
-    		for(int i = 0; i < 11; i++) {
-    			
-    			//TODO: clean + implement Borders
-    			
-    			if(vertices[i][j] != null) {
-    				Bitmap bitmap = Bitmap.createScaledBitmap(bitmapCache.get(40 + vertices[i][j].fundament.ordinal()).first, 
-    						sizeHandler.getBuildingWidth(),sizeHandler.getBuildingHeight(),true);
-    				Pair<Integer, Integer> coordinates = sizeHandler.getCornerCoordinates(i, j);
-    				canvas.drawBitmap(bitmap, coordinates.first, coordinates.second, null);
-    			}    			
-    		}
-    	}
+		drawBuildings(canvas);
+		drawRoads(canvas);
 		
         canvas.restore();
 	}
 	
-	//Gives the bitmap of the landing
+	private void drawBuildings(Canvas canvas) {
+		for(int j = 0; j < 6; j++) {
+    		for(int i = 0; i < 11; i++) {			
+    			if(vertices[i][j] != null) {
+    				Pair<Integer, Integer> coordinates = sizeHandler.getCornerCoordinates(i, j);
+    				
+    				//Calculate zooming
+    				Rect mRectDst = new Rect(
+    						coordinates.first, 
+    						coordinates.second, 
+    						coordinates.first + SizeHandler.getBuildingWidth(), 
+    						coordinates.second + SizeHandler.getBuildingHeight());
+    				
+    				canvas.drawBitmap(bitmapCache.get(40 + vertices[i][j].fundament.ordinal()).first, null, mRectDst, null);
+    			}
+    		}
+    	}
+	}
+	
+	private void drawRoads(Canvas canvas) {
+		for(int j = 0; j < 11; j++) {
+    		for(int i = 0; i < 10; i++) {    			
+    			if(edges[i][j] != null) {
+    				Pair<Integer, Integer> coordinates = sizeHandler.getBorderCoordinates(i, j);
+    				
+    				//Calculate zooming
+    				Rect mRectDst = new Rect(
+    						coordinates.first, 
+    						coordinates.second, 
+    						coordinates.first + SizeHandler.getBuildingWidth(), 
+    						coordinates.second + SizeHandler.getBuildingHeight());
+    				
+    				if(j % 2 == 0){
+    					Matrix matrix = new Matrix();
+    					matrix.setRotate(60.0f, SizeHandler.getBuildingWidth()/2, SizeHandler.getBuildingHeight()/2);
+    					canvas.drawBitmap(bitmapCache.get(50 + edges[i][j].owner.ordinal()).first, matrix, null);
+    					continue;
+    				}
+    				
+    				canvas.drawBitmap(bitmapCache.get(50 + edges[i][j].owner.ordinal()).first, null, mRectDst, null);
+    			}
+    		}
+    	}
+	}
+	
+	//Gives the bitmap of the landing NOTE: for the constant 20 should a const variable declared?
 	private Bitmap getLandingsBitmap(Resource resource) {
-//		if(resource.equals(Resource.lumber)) return bitmapCache.get(31);
 		return bitmapCache.get(20 + resource.ordinal()).first;
 	}
 	
 	private void drawLanding(Landing actualLanding, Canvas canvas) {
-		//FIXME: itt sokszorozódnak meg a képek! Ezt a bitmapCache kéne tudja?
-//		Bitmap bitmap = Bitmap.createScaledBitmap(getLandingsBitmap(actualLanding.getProvidedResource()), 
-//				sizeHandler.getLandingWidth(),sizeHandler.getLandingHeight(),true);
-		Pair<Integer, Integer> coordinates = sizeHandler.getLandingCoordinates(actualLanding.getCoordinates()); 
-//		canvas.drawBitmap(bitmap, coordinates.first, coordinates.second, null);
+		Pair<Integer, Integer> coordinates = sizeHandler.getLandingCoordinates(actualLanding.getCoordinates());
+		
+		//Calculate zooming
 		Rect mRectDst = new Rect(
 				coordinates.first, 
 				coordinates.second, 
-				coordinates.first + sizeHandler.getLandingWidth(), 
-				coordinates.second + sizeHandler.getLandingHeight());
+				coordinates.first + SizeHandler.getLandingWidth(), 
+				coordinates.second + SizeHandler.getLandingHeight());
 		
 		canvas.drawBitmap(getLandingsBitmap(actualLanding.getProvidedResource()), null, mRectDst, null);
-//		canvas.drawBitmap(getLandingsBitmap(actualLanding.getProvidedResource()), coordinates.first, coordinates.second, null);
 		
 		//Resource or Bandit chips
-		int xCoord = (int) (coordinates.first + sizeHandler.getLandingWidth() / 2 - sizeHandler.getChipsSize() / 2);
-		int yCoord = (int) (coordinates.second + sizeHandler.getLandingHeight() / 2 - sizeHandler.getChipsSize() / 2);
-//		bitmap = Bitmap.createScaledBitmap(
-//			    bitmapCache.get(actualLanding.getIsActive() ? actualLanding.getResourceNumber() : 7),
-//				sizeHandler.getChipsSize(),sizeHandler.getChipsSize(),true);
+		int xCoord = (int) (coordinates.first + SizeHandler.getLandingWidth() / 2 - SizeHandler.getChipsSize() / 2);
+		int yCoord = (int) (coordinates.second + SizeHandler.getLandingHeight() / 2 - SizeHandler.getChipsSize() / 2);
 		coordinates = actualLanding.getCoordinates();
-//		canvas.drawBitmap(bitmap, xCoord, yCoord, null);
-		mRectDst.set(xCoord, yCoord, xCoord + sizeHandler.getChipsSize(), yCoord + sizeHandler.getChipsSize());
+		
+		//Zooming for chipses
+		mRectDst.set(xCoord, yCoord, xCoord + SizeHandler.getChipsSize(), yCoord + SizeHandler.getChipsSize());
 		canvas.drawBitmap(bitmapCache.get(actualLanding.getIsActive() ? actualLanding.getResourceNumber() : 7).first, null, mRectDst, null);
-//		canvas.drawBitmap(bitmapCache.get(actualLanding.getIsActive() ? actualLanding.getResourceNumber() : 7).first, xCoord, yCoord, null);
 	}
 	
 	private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
@@ -426,5 +495,4 @@ public class Panel extends SurfaceView implements SurfaceHolder.Callback{
 	        return true;
 	    }
 	}
-
 }
